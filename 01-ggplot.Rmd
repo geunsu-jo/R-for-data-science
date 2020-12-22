@@ -37,6 +37,7 @@ mpg %>% head()
 
 ## geom_point 활용
 그래프 상에 점들을 출력하는 함수
+
 #### 산점도 그리기
 __displ__ 를 x축,__hwy__ 를 y축
 ```{r geom_point1}
