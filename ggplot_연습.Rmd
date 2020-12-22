@@ -1,0 +1,379 @@
+---
+title: "1주차_정리1"
+author: "조근수"
+date: '2020 9 9 '
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# ggplot을 활용한 데이터 시각화
+
+
+#### 가장 먼저 필요한 패키지를 불러온다
+
+```{r, message=FALSE}
+library(tidyverse)
+```
+- tidyverse는 다양한 패키지를 포함한다.( __dplyr__, __ggplot2__, __haven__ 등)
+
+#### 데이터 불러오기(diamonds)
+```{r diamond_data, message=FALSE}
+data(diamonds)
+diamonds %>% head()
+```
+- 총 10개의 변수로 구성되어있다.
+
+#### 데이터 불러오기(mpg)
+```{r mpg_data, message=FALSE}
+data(mpg)
+mpg %>% head()
+```
+- 총 11개의 변수로 구성되어있다.
+- __displ__ 변수는 자동차 엔진의 크기
+- __hwy__ 변수는 연료 효율성 (miles per gallon)
+
+
+## geom_point 활용
+그래프 상에 점들을 출력하는 함수
+#### 산점도 그리기
+__displ__ 를 x축,__hwy__ 를 y축
+```{r geom_point1}
+ggplot(data=mpg)+
+geom_point(mapping = aes(x = displ, y = hwy))
+```
+```{r}
+```
+- 두 변수간의 __음의 상관관계__ 가 보인다
+
+
+
+
+#### x, y 축을 log scaling
+```{r geom_point2}
+ggplot(data=mpg)+
+geom_point(mapping = aes(x = log(displ), y = log(hwy)))
+```
+```{r}
+```
+- mapping의 x,y 값에 log를 취한다
+- 역시 음의 상관관계
+
+
+
+#### 그룹별 색상(color) 지정
+```{r geom_point3}
+ggplot(data = mpg) +
+geom_point(mapping = aes(x = displ, y = hwy, color = class))
+```
+
+#### 그룹별 크기(size) 지정
+```{r geom_point4}
+ggplot(data = mpg) +
+geom_point(mapping = aes(x = displ, y = hwy, size = class))
+```
+```{r}
+```
+- __class__ 가 order인 경우 의미가 있을 듯
+
+
+#### 그룹별 투명도(alpha) 지정
+
+```{r geom_point5}
+ggplot(data = mpg) +
+geom_point(mapping = aes(x = displ, y = hwy, alpha = class))
+```
+```{r}
+```
+- __class__ 가 order인 경우 의미가 있을 듯
+
+#### 다양한 point 형태
+
+```{r}
+mpg %>% ggplot(aes(displ, hwy, group=class)) + 
+  geom_point(aes(color=drv), fill=20, stroke=1, size=2, shape=1) 
+```
+
+## geom_tile 활용
+타일(tile) 모양의 그래프 출력
+__count()__ 함수로 그룹별 count
+```{r}
+mpg %>% count(class, drv)
+```
+- class, drv 변수는 모두 categorical variable
+```{r geom_tile1}
+mpg %>% count(class, drv) %>%
+  ggplot(aes(x=class, y=drv)) + geom_tile(mapping = aes(fill = n))
+```
+
+## facet 활용
+앞서 geom_point의 color나 alpha를 조정해주며 하나의 그래프에 여러 그룹을 구분해주었다.
+__facet__ 을 활용하면 그룹별 그래프를 따로 출력할 수 있다.
+
+### facet_wrap
+
+__한개__ 의 그룹일 경우 사용
+```{r}
+ggplot(data = mpg) +
+geom_point(mapping = aes(x = displ, y = hwy)) +
+facet_wrap(~ class, nrow = 2)
+```
+```{r}
+```
+- facet_wrap(~class) 대신 facet_grid(.~class)
+### facet_grid
+
+__두개__ 의 그룹일 경우 사용
+```{r}
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = displ, y = hwy)) +
+  facet_grid(drv ~ cyl)
+```
+
+## geom_smooth 활용
+추세선을 구할때 사용된다. <br>
+__geom_point()__ 와 함께 자주 사용된다.
+```{r}
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = displ, y = hwy)) +
+  geom_smooth(mapping = aes(x = displ, y = hwy))
+```
+
+```{r}
+```
+- __geom_point()__ 와 함께 사용한 기본적인 형태
+- point와 smooth에 mapping이 모두 들어갔다.
+- 위의 경우는 mapping이 동일하므로 ggplot() 내에 mapping 해주어도 실행된다.
+
+#### 그룹별 smooth
+
+```{r}
+ggplot(data = mpg) +
+  geom_smooth(mapping = aes(x = displ, y = hwy, group = drv))
+```
+```{r}
+```
+- 위의 결과는 어떤 group의 smooth인지 알 수 없다.
+
+##### linetype으로 그룹 구별
+```{r}
+ggplot(data = mpg) +
+  geom_smooth(mapping = aes(x = displ, y = hwy, linetype = drv))
+```
+
+##### color로 그룹 구별
+```{r}
+ggplot(data = mpg) +
+  geom_smooth(mapping = aes(x = displ, y = hwy, color = drv),
+              show.legend = TRUE)
+```
+
+#### point를 group 별로 구분
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
+  geom_point(mapping = aes(color = class), show.legend = TRUE) +
+  geom_smooth()
+```
+```{r}
+```
+- show.legend = TRUE 는 범례 출력
+
+#### 특정 group에 대해서만 추세선 & SE(standard error) 제거
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
+  geom_point(mapping = aes(color = class)) +
+  geom_smooth(data = filter(mpg, class == "subcompact"), se = F)
+```
+```{r}
+```
+- __filter__ 를 이용해 원하는 class 추출
+- __se = F__ 를 이용해 표준오차 제거
+
+#### 다양한 종류의 그래프
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
+  geom_point(mapping = aes(color = drv), show.legend = TRUE) +
+  geom_smooth()
+```
+
+```{r}
+mpg %>% ggplot(aes(displ, hwy, group=drv)) + 
+  geom_point(aes(color=drv)) + 
+  geom_smooth(se=F, aes(linetype=drv))
+```
+
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(size=4, color='white') +
+  geom_point(aes(colour=drv))
+```
+
+```{r}
+mpg %>% ggplot(aes(displ, hwy, group=drv)) + 
+  geom_point(aes(color=drv), fill=20, stroke=1, size=2, shape=1) 
+```
+
+## statistical transformation
+
+### geom_bar와 geom_count 비교
+
+```{r}
+ggplot(data = diamonds) +
+  geom_bar(mapping = aes(x = cut))
+
+ggplot(data = diamonds) +
+  stat_count(mapping = aes(x = cut))
+```
+
+```{r}
+```
+- 위의 두 결과가 완전히 동일
+- __geom_bar()__ 에 자연스럽게 count 성질을 포함
+
+### stat_summary()
+
+```{r, warning=F}
+ggplot(data = diamonds) +
+  stat_summary(
+    mapping = aes(x = cut, y = depth),
+    fun.ymin = min,
+    fun.ymax = max,
+    fun.y = median
+  )
+```
+
+```{r}
+```
+- point는 __중앙값__ 을 나타냄
+- 직선의 양 끝값은 __최댓값__ 과 __최솟값__
+
+
+```{r, warning=F}
+d <- ggplot(mtcars, aes(cyl, mpg)) + geom_point()
+d + stat_summary(fun.y = "mean", colour = "red", size = 2,
+                 geom = "point")
+```
+
+지금까지 geom_bar은 y축에 count 결과를 출력
+propotion은 어떻게 계산하는가?
+```{r}
+ggplot(data = diamonds) +
+  geom_bar(mapping = aes(x = cut, y = ..prop.., group = 1))
+```
+```{r}
+```
+- __group=1__ 을 추가해주어야 propotion을 구할 수 있다.
+- 다소 직관적이진 못하다.
+
+혹은 다음과 같이 propotion을 구할 수 있다.
+```{r}
+ggplot(data = diamonds) +
+  geom_bar(aes(x = cut, y = ..count.. / sum(..count..),
+               fill = color))
+```
+
+```{r}
+```
+- ..count.. 를 활용하여 propotion을 구했다.
+- fill= 옵션으로 그룹별 색상을 달리했다.
+
+## Positon adjustment
+
+#### bar chart에서는 colour 옵션으로 색 지정하는 것 보다 fill이 더 유용하다.
+```{r}
+ggplot(data = diamonds) +
+  geom_bar(mapping = aes(x = cut, colour = cut))
+
+ggplot(data = diamonds) +
+  geom_bar(mapping = aes(x = cut, fill = cut))
+
+ggplot(data = diamonds) +
+  geom_bar(mapping = aes(x = cut, fill = clarity))
+
+```
+
+#### position = "identity"
+```{r}
+ggplot(data = diamonds,
+       mapping = aes(x = cut,fill = clarity)) +
+  geom_bar(alpha = 1/5, position = "identity")
+
+ggplot(data = diamonds,
+       mapping = aes(x = cut, colour = clarity)) +
+  geom_bar(fill = NA, position = "identity")
+```
+```{r}
+```
+- position = identity는 default 값인듯
+- alpha 값으로 투명도 조절
+
+#### position = "fill"
+```{r}
+ggplot(data = diamonds) +
+  geom_bar(mapping = aes(x = cut, fill = clarity),
+           position = "fill")
+```
+
+#### position = "dodge"
+
+```{r}
+ggplot(data = diamonds) +
+  geom_bar(mapping = aes(x = cut, fill = clarity),
+           position = "dodge")
+```
+
+
+#### position = "jitter"
+```{r}
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = displ, y = hwy),
+             position = "jitter")
+```
+
+## Coordinate system
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = class, y = hwy)) +
+  geom_boxplot()
+ggplot(data = mpg, mapping = aes(x = class, y = hwy)) + 
+  geom_boxplot() + coord_flip()
+```
+```{r}
+```
+- __coord_flip()__ 를 이용해 가로방향 출력
+
+```{r}
+bar <- ggplot(data = diamonds) +
+  geom_bar(mapping = aes(x = cut, fill = cut), show.legend = FALSE, width = 1) +
+  labs(x = NULL, y = NULL)
+bar
+```
+
+```{r}
+bar + coord_polar()
+```
+
+```{r}
+ggplot(mpg, aes(x = factor(1), fill = drv)) + geom_bar()
+ggplot(mpg, aes(x = factor(1), fill = drv)) + geom_bar() +
+  coord_polar(theta = "y")
+```
+
+```{r}
+ggplot(mpg, aes(x = factor(1), fill = drv)) + geom_bar(width = 1) +
+  coord_polar()
+```
+
+### labs 활용
+```{r}
+ggplot(data = mpg, mapping = aes(x = class, y = hwy)) +
+geom_boxplot() +
+coord_flip() +
+labs(y = "Highway MPG",
+x = "Class",
+title = "Highway MPG by car class",
+subtitle = "1999-2008",
+caption = "Source: http://fueleconomy.gov")
+```
